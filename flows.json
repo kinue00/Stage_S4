@@ -1,0 +1,910 @@
+[
+    {
+        "id": "9fe91a88.ff4e78",
+        "type": "tab",
+        "label": "badgeuse connectée",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "7a11236b.57502c",
+        "type": "tab",
+        "label": "timer",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "66009f3d.b0d87",
+        "type": "tab",
+        "label": "test",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "b1f932c1.60df8",
+        "type": "ttn app",
+        "z": "",
+        "appId": "stage01",
+        "accessKey": "ttn-account-v2.ivhYV8WGEgC2a-o3Bb5LLDRNueg-QyB_cS3PwOELQqE",
+        "discovery": "discovery.thethingsnetwork.org:1900"
+    },
+    {
+        "id": "586c59cd.e27e38",
+        "type": "influxdb",
+        "z": "",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "list_stu",
+        "name": "",
+        "usetls": false,
+        "tls": ""
+    },
+    {
+        "id": "477ef148.f584f",
+        "type": "ttn uplink",
+        "z": "9fe91a88.ff4e78",
+        "name": "Device_1",
+        "app": "b1f932c1.60df8",
+        "dev_id": "badges",
+        "field": "",
+        "x": 120,
+        "y": 120,
+        "wires": [
+            [
+                "eb2112d7.323fc"
+            ]
+        ]
+    },
+    {
+        "id": "b832aad4.952f18",
+        "type": "influxdb in",
+        "z": "9fe91a88.ff4e78",
+        "influxdb": "586c59cd.e27e38",
+        "name": "list_stu",
+        "query": "select * from student limit 3",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "x": 300,
+        "y": 460,
+        "wires": [
+            [
+                "d677ae56.ffaa9",
+                "945d14bf.892ed8"
+            ]
+        ]
+    },
+    {
+        "id": "eacc511.187ebb",
+        "type": "debug",
+        "z": "9fe91a88.ff4e78",
+        "name": "database",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 860,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "2375e3ff.5aca9c",
+        "type": "ttn event",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "app": "b1f932c1.60df8",
+        "dev_id": "badges",
+        "event": "#TX_DONE",
+        "x": 180,
+        "y": 820,
+        "wires": [
+            [
+                "dc16998b.1f2f68"
+            ]
+        ]
+    },
+    {
+        "id": "d677ae56.ffaa9",
+        "type": "split",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "splt": ",",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": true,
+        "addname": "",
+        "x": 450,
+        "y": 460,
+        "wires": [
+            [
+                "edd2a95f.ff6578"
+            ]
+        ]
+    },
+    {
+        "id": "c75382f3.f3862",
+        "type": "switch",
+        "z": "9fe91a88.ff4e78",
+        "name": "comparison",
+        "property": "payload.RFID",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "buffer_str",
+                "vt": "flow"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 350,
+        "y": 620,
+        "wires": [
+            [
+                "ee2c2f0a.b6ff4"
+            ],
+            [
+                "fffcfdbb.9c434"
+            ]
+        ]
+    },
+    {
+        "id": "eb2112d7.323fc",
+        "type": "function",
+        "z": "9fe91a88.ff4e78",
+        "name": "4bit_buffer_to_str",
+        "func": "//p = JSON.parse(msg.payload);\nvar v = flow.get('buffer_str')||0;\np = msg.payload;\n//node.log(typeof p);\nv = p[0]*Math.pow(2,24) + p[1]*Math.pow(2,16) + p[2]*Math.pow(2,8) + p[3];\nv = v.toString(16);\n//p.toString();\nflow.set('buffer_str',v.toUpperCase());\nmsg.playload = p;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 330,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b3c37447.1d5e48",
+        "type": "inject",
+        "z": "9fe91a88.ff4e78",
+        "name": "sim_buffer",
+        "topic": "",
+        "payload": "[4, 254, 171, 10 ]",
+        "payloadType": "bin",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 120,
+        "y": 80,
+        "wires": [
+            [
+                "eb2112d7.323fc"
+            ]
+        ]
+    },
+    {
+        "id": "3f2bca9a.15ee06",
+        "type": "comment",
+        "z": "9fe91a88.ff4e78",
+        "name": "receive 1 RFID a time and send to contextdata to compare",
+        "info": "",
+        "x": 250,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "7e63c1f.58b4d4",
+        "type": "comment",
+        "z": "9fe91a88.ff4e78",
+        "name": "Check the present student on every reception of a RFID",
+        "info": "",
+        "x": 240,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "f1d5f5e.3b85b08",
+        "type": "inject",
+        "z": "9fe91a88.ff4e78",
+        "name": "timestart",
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 120,
+        "y": 460,
+        "wires": [
+            [
+                "b832aad4.952f18"
+            ]
+        ]
+    },
+    {
+        "id": "3d3e78c.8678c88",
+        "type": "comment",
+        "z": "9fe91a88.ff4e78",
+        "name": "collect the list from influxdb",
+        "info": "",
+        "x": 150,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "8994e93c.3ce1d8",
+        "type": "change",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "paths",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 770,
+        "y": 800,
+        "wires": [
+            [
+                "5dd343f7.c204ac"
+            ]
+        ]
+    },
+    {
+        "id": "ee2c2f0a.b6ff4",
+        "type": "template",
+        "z": "9fe91a88.ff4e78",
+        "name": "present",
+        "field": "payload.PRESENCE",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "present",
+        "output": "str",
+        "x": 520,
+        "y": 600,
+        "wires": [
+            [
+                "7d71ed5.4272814"
+            ]
+        ]
+    },
+    {
+        "id": "fffcfdbb.9c434",
+        "type": "template",
+        "z": "9fe91a88.ff4e78",
+        "name": "absent",
+        "field": "payload.PRESENCE",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "absent",
+        "output": "str",
+        "x": 510,
+        "y": 640,
+        "wires": [
+            [
+                "d8dc1059.5a8ad"
+            ]
+        ]
+    },
+    {
+        "id": "d8dc1059.5a8ad",
+        "type": "switch",
+        "z": "9fe91a88.ff4e78",
+        "name": "allow to output",
+        "property": "timeout",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 680,
+        "y": 620,
+        "wires": [
+            [
+                "90394f87.f9c3a"
+            ],
+            [
+                "bbfcdbb1.465d98"
+            ]
+        ]
+    },
+    {
+        "id": "bf06ca75.3c49b8",
+        "type": "inject",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "topic": "",
+        "payload": "timeout",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 150,
+        "y": 900,
+        "wires": [
+            [
+                "64f8f7a4.0e7918",
+                "dc16998b.1f2f68"
+            ]
+        ]
+    },
+    {
+        "id": "64f8f7a4.0e7918",
+        "type": "function",
+        "z": "9fe91a88.ff4e78",
+        "name": "set flow.timeout=true",
+        "func": "var v = flow.get('timeout')||0;\nflow.set('timeout',true);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 340,
+        "y": 940,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "adc69a46.d49768",
+        "type": "excel",
+        "z": "9fe91a88.ff4e78",
+        "name": "output list of absents",
+        "file": "C:\\Users\\kinue\\Desktop\\stages\\cloker_IOT\\nodered\\output.xlsx",
+        "x": 1080,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "945d14bf.892ed8",
+        "type": "function",
+        "z": "9fe91a88.ff4e78",
+        "name": "initialisation",
+        "func": "var v1 = flow.get('timeout')||0;\nvar v2 = flow.get('buffer_str')||0;\n\nflow.set('timeout',false);\nflow.set('buffer_str',\"AAAAAAAA\");\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 370,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8fb62d6d.fcb41",
+        "type": "debug",
+        "z": "9fe91a88.ff4e78",
+        "name": "absents",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 1040,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "cf7a5967.e54b08",
+        "type": "inject",
+        "z": "9fe91a88.ff4e78",
+        "name": "sim_event",
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 180,
+        "y": 780,
+        "wires": [
+            [
+                "dc16998b.1f2f68"
+            ]
+        ]
+    },
+    {
+        "id": "7d71ed5.4272814",
+        "type": "debug",
+        "z": "9fe91a88.ff4e78",
+        "name": "presents",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 680,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "edd2a95f.ff6578",
+        "type": "change",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "payload.value",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 650,
+        "y": 460,
+        "wires": [
+            [
+                "c75382f3.f3862",
+                "eacc511.187ebb"
+            ]
+        ]
+    },
+    {
+        "id": "dcea39ba.643348",
+        "type": "function",
+        "z": "9fe91a88.ff4e78",
+        "name": "setup RFID",
+        "func": "//p = JSON.parse(msg.payload);\nvar v = flow.get('buffer_str')||0;\n\nflow.set('buffer_str',msg.payload);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 730,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bb07f504.b9f048",
+        "type": "inject",
+        "z": "9fe91a88.ff4e78",
+        "name": "sim_RFID01",
+        "topic": "",
+        "payload": "2D4510F6",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 570,
+        "y": 80,
+        "wires": [
+            [
+                "dcea39ba.643348"
+            ]
+        ]
+    },
+    {
+        "id": "99f4b607.73ce28",
+        "type": "inject",
+        "z": "9fe91a88.ff4e78",
+        "name": "sim_RFID02",
+        "topic": "",
+        "payload": "70D0EB4C",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 570,
+        "y": 120,
+        "wires": [
+            [
+                "dcea39ba.643348"
+            ]
+        ]
+    },
+    {
+        "id": "9d4fda7d.3390b8",
+        "type": "debug",
+        "z": "9fe91a88.ff4e78",
+        "name": "probe01",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 760,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "ad75a310.1e367",
+        "type": "change",
+        "z": "9fe91a88.ff4e78",
+        "name": "Set path_1",
+        "rules": [
+            {
+                "t": "set",
+                "p": "paths",
+                "pt": "msg",
+                "to": "path_1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 760,
+        "wires": [
+            [
+                "1a4ea4d7.40fefb"
+            ]
+        ]
+    },
+    {
+        "id": "dc16998b.1f2f68",
+        "type": "change",
+        "z": "9fe91a88.ff4e78",
+        "name": "Set path_2",
+        "rules": [
+            {
+                "t": "set",
+                "p": "paths",
+                "pt": "msg",
+                "to": "path_2",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 820,
+        "wires": [
+            [
+                "1a4ea4d7.40fefb"
+            ]
+        ]
+    },
+    {
+        "id": "1a4ea4d7.40fefb",
+        "type": "join-wait",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "paths": "[\"path_1\", \"path_2\"]",
+        "pathsToExpire": "",
+        "ignoreUnmatched": false,
+        "pathTopic": "paths",
+        "pathTopicType": "msg",
+        "correlationTopic": "",
+        "correlationTopicType": "msg",
+        "timeout": "15",
+        "timeoutUnits": "60000",
+        "exactOrder": "false",
+        "firstMsg": "true",
+        "mapPayload": "true",
+        "disableComplete": false,
+        "x": 580,
+        "y": 820,
+        "wires": [
+            [
+                "8994e93c.3ce1d8"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "b3ad560d.4abd98",
+        "type": "comment",
+        "z": "9fe91a88.ff4e78",
+        "name": "(optional) expired messages",
+        "info": "",
+        "x": 800,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "bbfcdbb1.465d98",
+        "type": "join",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "mode": "custom",
+        "build": "array",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": false,
+        "timeout": "1",
+        "count": "",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 710,
+        "y": 680,
+        "wires": [
+            [
+                "ad75a310.1e367"
+            ]
+        ]
+    },
+    {
+        "id": "5dd343f7.c204ac",
+        "type": "split",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 950,
+        "y": 800,
+        "wires": [
+            [
+                "c75382f3.f3862"
+            ]
+        ]
+    },
+    {
+        "id": "90394f87.f9c3a",
+        "type": "change",
+        "z": "9fe91a88.ff4e78",
+        "name": "date d'absence",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload.time",
+                "pt": "msg",
+                "to": "",
+                "tot": "date"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 600,
+        "wires": [
+            [
+                "adc69a46.d49768",
+                "8fb62d6d.fcb41"
+            ]
+        ]
+    },
+    {
+        "id": "203c007.a2b17",
+        "type": "vacation-timer",
+        "z": "7a11236b.57502c",
+        "name": "",
+        "lat": "43.6863",
+        "lon": "7.23517",
+        "turnOffOnDaysOff": true,
+        "midnightSchedule": true,
+        "onTime": "07:00",
+        "randMinutes": "0",
+        "offTime": "07:15",
+        "randOffMinutes": "0",
+        "minOnHours": "0",
+        "minOnMinutes": "10",
+        "maxOnHours": "0",
+        "maxOnMinutes": "15",
+        "stopTab": "tab-2",
+        "onPayloadType": "str",
+        "onPayloadVal": "on",
+        "onTopicVal": "",
+        "offPayloadType": "str",
+        "offPayloadVal": "off",
+        "offTopicVal": "",
+        "suspended": true,
+        "disableMax": false,
+        "sun": false,
+        "mon": true,
+        "tue": true,
+        "wed": true,
+        "thu": true,
+        "fri": true,
+        "sat": false,
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "4b0b0e6.92fc5f"
+            ]
+        ]
+    },
+    {
+        "id": "4b0b0e6.92fc5f",
+        "type": "switch",
+        "z": "7a11236b.57502c",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "on",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "off",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 320,
+        "y": 100,
+        "wires": [
+            [
+                "a9d8c75f.2d90f8"
+            ],
+            [
+                "db3152ec.d7b64"
+            ]
+        ]
+    },
+    {
+        "id": "a9d8c75f.2d90f8",
+        "type": "link out",
+        "z": "7a11236b.57502c",
+        "name": "out_on",
+        "links": [
+            "e5f5fc2a.2addc",
+            "d07d5b46.e59be8"
+        ],
+        "x": 435,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "db3152ec.d7b64",
+        "type": "link out",
+        "z": "7a11236b.57502c",
+        "name": "out_off",
+        "links": [
+            "6d7fcf03.05cba",
+            "70831cf9.d3c4a4"
+        ],
+        "x": 435,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "e5f5fc2a.2addc",
+        "type": "link in",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "links": [
+            "a9d8c75f.2d90f8"
+        ],
+        "x": 175,
+        "y": 420,
+        "wires": [
+            [
+                "b832aad4.952f18"
+            ]
+        ]
+    },
+    {
+        "id": "6d7fcf03.05cba",
+        "type": "link in",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "links": [
+            "db3152ec.d7b64"
+        ],
+        "x": 175,
+        "y": 940,
+        "wires": [
+            [
+                "dc16998b.1f2f68",
+                "64f8f7a4.0e7918"
+            ]
+        ]
+    },
+    {
+        "id": "5220618e.b5226",
+        "type": "ttn downlink",
+        "z": "9fe91a88.ff4e78",
+        "name": "downlink_on",
+        "app": "b1f932c1.60df8",
+        "dev_id": "",
+        "port": "",
+        "confirmed": false,
+        "schedule": "replace",
+        "x": 310,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "33905bc9.6947b4",
+        "type": "ttn downlink",
+        "z": "9fe91a88.ff4e78",
+        "name": "downlink_off",
+        "app": "b1f932c1.60df8",
+        "dev_id": "",
+        "port": "",
+        "confirmed": false,
+        "schedule": "replace",
+        "x": 310,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "f99fef46.0c62a",
+        "type": "comment",
+        "z": "9fe91a88.ff4e78",
+        "name": "send the start and stop messages to the device",
+        "info": "",
+        "x": 220,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "d07d5b46.e59be8",
+        "type": "link in",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "links": [
+            "a9d8c75f.2d90f8"
+        ],
+        "x": 195,
+        "y": 240,
+        "wires": [
+            [
+                "5220618e.b5226"
+            ]
+        ]
+    },
+    {
+        "id": "70831cf9.d3c4a4",
+        "type": "link in",
+        "z": "9fe91a88.ff4e78",
+        "name": "",
+        "links": [
+            "db3152ec.d7b64"
+        ],
+        "x": 195,
+        "y": 280,
+        "wires": [
+            [
+                "33905bc9.6947b4"
+            ]
+        ]
+    }
+]
